@@ -3824,6 +3824,18 @@ function drawGlassText(text, x, y, opts) {
   }
   ctx.fillStyle = o.color;
   ctx.fillText(text, x, y);
+  if (o.underline) {
+    const tw = ctx.measureText(text).width;
+    let ux = x;
+    if (o.align === 'center') ux = x - tw / 2;
+    else if (o.align === 'right') ux = x - tw;
+    ctx.beginPath();
+    ctx.moveTo(ux, y + 3);
+    ctx.lineTo(ux + tw, y + 3);
+    ctx.strokeStyle = o.color;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -6942,10 +6954,10 @@ function drawAbout() {
 
   // 仓库地址
   drawGlassText('仓库地址：', W/2, py + 230, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
-  drawGlassText('https://github.com/CyberOneUltra/castle_war', W/2, py + 250, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('https://github.com/CyberOneUltra/castle_war', W/2, py + 250, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(100,180,255,0.8)', align: 'center', underline: true });
   // 游戏主页
   drawGlassText('游戏主页：', W/2, py + 275, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
-  drawGlassText('https://cyberoneultra.github.io/castle_war', W/2, py + 295, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('https://cyberoneultra.github.io/castle_war', W/2, py + 295, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(100,180,255,0.8)', align: 'center', underline: true });
 
   // AI Tools
   drawGlassText('🤖 AI工具：', W/2, py + 328, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
@@ -7965,6 +7977,15 @@ async function handleClick(x, y) {
       gameState = 'menu';
       return;
     }
+    // Clickable URLs (py=80, centered at W/2=640)
+    if (x >= 380 && x <= 900 && y >= 318 && y <= 340) {
+      window.open('https://github.com/CyberOneUltra/castle_war', '_blank');
+      return;
+    }
+    if (x >= 380 && x <= 900 && y >= 363 && y <= 385) {
+      window.open('https://cyberoneultra.github.io/castle_war', '_blank');
+      return;
+    }
     return;
   }
 
@@ -8482,6 +8503,12 @@ function gameLoop(timestamp) {
         if (battle.gameOver) drawVictoryDefeat(battle);
       }
       break;
+  }
+
+  // URL hover detection in about page
+  if (gameState === 'about') {
+    if (mouseX >= 380 && mouseX <= 900 && mouseY >= 318 && mouseY <= 340) isAnyBtnHovered = true;
+    if (mouseX >= 380 && mouseX <= 900 && mouseY >= 363 && mouseY <= 385) isAnyBtnHovered = true;
   }
 
   // Hover cursor feedback
