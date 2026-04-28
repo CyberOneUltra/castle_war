@@ -7717,7 +7717,8 @@ function playCGVideo() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;';
 
   const video = document.createElement('video');
-  video.src = 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/CG.mp4';
+  const cachedCG = window.__assetCache && window.__assetCache['https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/CG.mp4'];
+  video.src = cachedCG || 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/CG.mp4';
   video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
   video.autoplay = true;
   video.playsInline = true;
