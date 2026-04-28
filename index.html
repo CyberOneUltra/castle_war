@@ -230,21 +230,25 @@ async function unlockAudio() {
   let webAudioOk = false;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const resp = await fetch('https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/1_fire.mp3');
-    if (resp.ok) {
-      for (const [id, src] of Object.entries(SPELL_VOICE)) {
-        try {
-          const r = await fetch(src);
-          const buf = await r.arrayBuffer();
-          audioBuffers[id] = await audioCtx.decodeAudioData(buf);
-        } catch (e) { console.warn('Load fail:', src); }
-      }
-      try {
-        const r = await fetch('https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/opening.mp3');
-        const buf = await r.arrayBuffer();
-        openingBuffer = await audioCtx.decodeAudioData(buf);
-      } catch (e) {}
-      webAudioOk = Object.keys(audioBuffers).length > 0;
+    // Load opening.mp3 FIRST (needed immediately for story screen)
+    try {
+      const cachedOpening = window.__assetCache && window.__assetCache['https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/opening.mp3'];
+      const r = cachedOpening
+        ? await fetch(cachedOpening)
+        : await fetch('https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/opening.mp3');
+      const buf = await r.arrayBuffer();
+      openingBuffer = await audioCtx.decodeAudioData(buf);
+      webAudioOk = true;
+    } catch (e) { console.warn('Load fail: opening.mp3', e); }
+    // Load spell voices in background (non-blocking)
+    const cachedSpellVoice = window.__assetCache || {};
+    for (const [id, src] of Object.entries(SPELL_VOICE)) {
+      const cachedUrl = cachedSpellVoice[src];
+      (cachedUrl ? fetch(cachedUrl) : fetch(src))
+        .then(r => r.arrayBuffer())
+        .then(buf => audioCtx.decodeAudioData(buf))
+        .then(decoded => { audioBuffers[id] = decoded; })
+        .catch(e => console.warn('Load fail:', src, e));
     }
   } catch (e) {}
   if (webAudioOk) return;
