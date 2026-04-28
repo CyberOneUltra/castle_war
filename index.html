@@ -6940,27 +6940,31 @@ function drawAbout() {
   ctx.lineTo(px + pw - 40, py + 205);
   ctx.stroke();
 
-  // 开源地址
-  drawGlassText('开源地址：', W/2, py + 230, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
+  // 仓库地址
+  drawGlassText('仓库地址：', W/2, py + 230, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
+  drawGlassText('https://github.com/CyberOneUltra/castle_war', W/2, py + 250, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  // 游戏主页
+  drawGlassText('游戏主页：', W/2, py + 275, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
+  drawGlassText('https://cyberoneultra.github.io/castle_war', W/2, py + 295, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
 
   // AI Tools
-  drawGlassText('🤖 AI工具：', W/2, py + 258, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
-  drawGlassText('OpenClaw', W/2, py + 280, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
-  drawGlassText('MiMo-V2.5-Pro', W/2, py + 300, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
-  drawGlassText('MiMo-V2.5', W/2, py + 320, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
-  drawGlassText('MiMo-V2.5-TTS-VoiceDesign', W/2, py + 340, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
-  drawGlassText('Seedance 2.0', W/2, py + 360, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('🤖 AI工具：', W/2, py + 328, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
+  drawGlassText('OpenClaw', W/2, py + 350, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('MiMo-V2.5-Pro', W/2, py + 370, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('MiMo-V2.5', W/2, py + 390, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('MiMo-V2.5-TTS-VoiceDesign', W/2, py + 410, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
+  drawGlassText('Seedance 2.0', W/2, py + 430, { font: '14px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.5)', align: 'center' });
 
   // Divider 3
   ctx.beginPath();
-  ctx.moveTo(px + 40, py + 385);
-  ctx.lineTo(px + pw - 40, py + 385);
+  ctx.moveTo(px + 40, py + 455);
+  ctx.lineTo(px + pw - 40, py + 455);
   ctx.stroke();
 
   // 音乐
-  drawGlassText('🎵 音乐', W/2, py + 410, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
-  drawGlassText('Music by Kevin MacLeod (incompetech.com)', W/2, py + 435, { font: '13px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.4)', align: 'center' });
-  drawGlassText('Licensed under CC-BY 3.0', W/2, py + 455, { font: '13px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.4)', align: 'center' });
+  drawGlassText('🎵 音乐', W/2, py + 480, { font: 'bold 15px "Noto Sans SC", sans-serif', color: 'rgba(200,168,78,0.6)', align: 'center' });
+  drawGlassText('Music by Kevin MacLeod (incompetech.com)', W/2, py + 505, { font: '13px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.4)', align: 'center' });
+  drawGlassText('Licensed under CC-BY 3.0', W/2, py + 525, { font: '13px "Noto Sans SC", sans-serif', color: 'rgba(255,255,255,0.4)', align: 'center' });
 }
 
 function drawHelp() {
