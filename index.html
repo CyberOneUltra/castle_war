@@ -35,6 +35,13 @@ canvas {
 <body>
 <div id="gameContainer">
   <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  <div id="preloadOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;color:#fff;font-family:'Noto Sans SC',sans-serif;">
+    <div style="font-size:28px;font-weight:700;margin-bottom:30px;letter-spacing:2px;">🏰 城堡战争 Castle War</div>
+    <div style="width:60%;max-width:500px;height:6px;background:#222;border-radius:3px;overflow:hidden;margin-bottom:16px;">
+      <div id="preloadBar" style="width:0%;height:100%;background:linear-gradient(90deg,#66aaff,#aa66ff);border-radius:3px;transition:width 0.3s;"></div>
+    </div>
+    <div id="preloadText" style="font-size:14px;color:#888;">加载资源中...</div>
+  </div>
 </div>
 <script>
 // ============================================================
@@ -8479,9 +8486,70 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Start
-openingAlpha = Date.now();
-requestAnimationFrame(gameLoop);
+// ── Preloader ──
+const PRELOAD_ASSETS = [
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/bg_image.png', type: 'image' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/CG.mp4', type: 'video' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/music/menu_bgm.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/music/battle_bgm.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/music/boss_bgm.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/opening.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/1_fire.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/2_cure.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/3_freeze.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/4_ligthing.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/5_defense.mp3', type: 'audio' },
+  { url: 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/voice/6_raid.mp3', type: 'audio' }
+];
+
+async function preloadAll() {
+  const bar = document.getElementById('preloadBar');
+  const text = document.getElementById('preloadText');
+  const overlay = document.getElementById('preloadOverlay');
+  let loaded = 0;
+  const total = PRELOAD_ASSETS.length;
+
+  const promises = PRELOAD_ASSETS.map(asset => {
+    const name = asset.url.split('/').pop();
+    return fetch(asset.url)
+      .then(r => {
+        if (!r.ok) throw new Error(name + ' HTTP ' + r.status);
+        return r.blob();
+      })
+      .then(blob => {
+        // Cache as object URL so subsequent loads use browser cache
+        const objUrl = URL.createObjectURL(blob);
+        // Store in a global cache map for the game to use
+        if (!window.__assetCache) window.__assetCache = {};
+        window.__assetCache[asset.url] = objUrl;
+        loaded++;
+        const pct = Math.round(loaded / total * 100);
+        bar.style.width = pct + '%';
+        text.textContent = '加载中 ' + loaded + '/' + total + ' (' + name + ')';
+      })
+      .catch(err => {
+        loaded++;
+        console.warn('Preload failed:', name, err);
+        bar.style.width = Math.round(loaded / total * 100) + '%';
+      });
+  });
+
+  await Promise.all(promises);
+  text.textContent = '加载完成！';
+  bar.style.width = '100%';
+  // Short delay then hide overlay
+  setTimeout(() => {
+    overlay.style.transition = 'opacity 0.5s';
+    overlay.style.opacity = '0';
+    setTimeout(() => { overlay.style.display = 'none'; }, 500);
+    // Start game
+    openingAlpha = Date.now();
+    requestAnimationFrame(gameLoop);
+  }, 300);
+}
+
+// Don't start game loop until preload finishes
+// (gameLoop is defined but not started until preloader calls it above)
 </script>
 
 </body>
