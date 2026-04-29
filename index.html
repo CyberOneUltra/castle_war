@@ -75,6 +75,194 @@ menuBgImg.src = 'https://cdn.jsdelivr.net/gh/CyberOneUltra/castle_war@main/bg_im
 let menuBgReady = false;
 menuBgImg.onload = () => { menuBgReady = true; };
 
+// ============================================================
+//  MENU BACKGROUND ATMOSPHERIC EFFECTS
+//  Persistent across all menu screens — dust, smoke, embers
+//  Colors: dark reds, oranges, browns, greys — NO gold/holy
+// ============================================================
+
+// Dust particles — drifting specks
+const _menuDust = [];
+// Smoke wisps — slow-moving translucent clouds
+const _menuSmoke = [];
+// Embers — tiny glowing sparks rising from below
+const _menuEmbers = [];
+
+// Initialize particles once
+function initMenuParticles() {
+  // Dust: 60 particles scattered across the screen
+  for (let i = 0; i < 60; i++) {
+    _menuDust.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 15 + 5,   // slight rightward drift
+      vy: (Math.random() - 0.5) * 8 - 3,     // gentle upward
+      size: 1 + Math.random() * 2.5,
+      alpha: 0.1 + Math.random() * 0.25,
+      life: 0,
+      maxLife: 8 + Math.random() * 12,
+      color: ['#8b7355', '#a08060', '#6b5b4a', '#9a8a70', '#7a6a5a'][Math.floor(Math.random() * 5)]
+    });
+  }
+
+  // Smoke: 12 slow-drifting translucent clouds
+  for (let i = 0; i < 12; i++) {
+    _menuSmoke.push({
+      x: Math.random() * W,
+      y: 200 + Math.random() * 400,
+      vx: (Math.random() - 0.3) * 8,    // slow drift
+      vy: -8 - Math.random() * 12,       // rising
+      size: 60 + Math.random() * 120,
+      alpha: 0.04 + Math.random() * 0.08,
+      maxAlpha: 0.04 + Math.random() * 0.08,
+      life: 0,
+      maxLife: 15 + Math.random() * 20,
+      wobblePhase: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.3 + Math.random() * 0.5
+    });
+  }
+
+  // Embers: 25 tiny glowing sparks
+  for (let i = 0; i < 25; i++) {
+    _menuEmbers.push({
+      x: Math.random() * W,
+      y: H - Math.random() * 200,
+      vx: (Math.random() - 0.5) * 20,
+      vy: -30 - Math.random() * 50,
+      size: 1 + Math.random() * 2,
+      alpha: 0.3 + Math.random() * 0.5,
+      life: 0,
+      maxLife: 3 + Math.random() * 5,
+      color: ['#cc4422', '#ff6633', '#aa3311', '#ff8844', '#dd5533'][Math.floor(Math.random() * 5)],
+      flickerPhase: Math.random() * Math.PI * 2
+    });
+  }
+}
+initMenuParticles();
+
+// Update & draw all menu atmospheric particles
+function updateMenuParticles(dt) {
+  const t = Date.now() * 0.001;
+
+  // ── Dust ──
+  for (const p of _menuDust) {
+    p.life += dt;
+    if (p.life >= p.maxLife) {
+      // Respawn
+      p.x = -20 + Math.random() * 40;
+      p.y = Math.random() * H;
+      p.life = 0;
+      p.maxLife = 8 + Math.random() * 12;
+    }
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    // Gentle sine wave drift
+    p.y += Math.sin(t * 0.5 + p.x * 0.01) * 0.3;
+    // Wrap horizontally
+    if (p.x > W + 30) p.x = -20;
+    if (p.x < -30) p.x = W + 20;
+    // Clamp vertically
+    if (p.y < -20) p.y = H + 10;
+    if (p.y > H + 20) p.y = -10;
+
+    // Fade in/out
+    let fadeAlpha = p.alpha;
+    const fadeIn = Math.min(1, p.life / 1.5);
+    const fadeOut = Math.min(1, (p.maxLife - p.life) / 1.5);
+    fadeAlpha *= fadeIn * fadeOut;
+
+    ctx.globalAlpha = fadeAlpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── Smoke ──
+  for (const s of _menuSmoke) {
+    s.life += dt;
+    if (s.life >= s.maxLife) {
+      // Respawn at bottom
+      s.x = Math.random() * W;
+      s.y = H + 50;
+      s.life = 0;
+      s.maxLife = 15 + Math.random() * 20;
+      s.alpha = s.maxAlpha;
+    }
+    // Wobble movement
+    s.x += (s.vx + Math.sin(t * s.wobbleSpeed + s.wobblePhase) * 4) * dt;
+    s.y += s.vy * dt;
+    s.size += 8 * dt; // expand slowly
+
+    // Fade in/out
+    let a = s.maxAlpha;
+    const fadeIn = Math.min(1, s.life / 3);
+    const fadeOut = Math.min(1, (s.maxLife - s.life) / 4);
+    a *= fadeIn * fadeOut;
+    a = Math.max(0, a);
+
+    // Draw as soft radial gradient circle
+    const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size);
+    grd.addColorStop(0, `rgba(60, 40, 30, ${a})`);
+    grd.addColorStop(0.4, `rgba(50, 35, 25, ${a * 0.6})`);
+    grd.addColorStop(1, `rgba(40, 30, 20, 0)`);
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── Embers ──
+  for (const e of _menuEmbers) {
+    e.life += dt;
+    if (e.life >= e.maxLife) {
+      // Respawn at bottom
+      e.x = 100 + Math.random() * (W - 200);
+      e.y = H + 10;
+      e.vx = (Math.random() - 0.5) * 20;
+      e.vy = -30 - Math.random() * 50;
+      e.life = 0;
+      e.maxLife = 3 + Math.random() * 5;
+    }
+    e.x += e.vx * dt;
+    e.y += e.vy * dt;
+    // Slight deceleration
+    e.vx *= 0.995;
+    // Drift with sine
+    e.x += Math.sin(t * 2 + e.flickerPhase) * 0.5;
+
+    // Flicker alpha
+    const flicker = 0.7 + Math.sin(t * 8 + e.flickerPhase) * 0.3;
+    let a = e.alpha * flicker;
+    const fadeIn = Math.min(1, e.life / 0.5);
+    const fadeOut = Math.min(1, (e.maxLife - e.life) / 1.5);
+    a *= fadeIn * fadeOut;
+    a = Math.max(0, Math.min(1, a));
+
+    // Draw ember with glow
+    ctx.globalAlpha = a;
+    ctx.shadowColor = e.color;
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = e.color;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Bright core
+    ctx.globalAlpha = a * 0.6;
+    ctx.fillStyle = '#ffaa66';
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.size * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+// ── Global menu animation time tracker (persists across screens) ──
+let _menuAnimTime = 0;
+
 function drawMenuBg() {
   if (menuBgReady) {
     // Cover mode: scale to fill canvas, crop overflow
@@ -91,6 +279,25 @@ function drawMenuBg() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
   }
+
+  // ── Dark atmospheric overlay (subtle darkening at edges) ──
+  const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Animated red-orange haze at bottom (ground fire glow) ──
+  const hazeAlpha = 0.06 + Math.sin(_menuAnimTime * 0.3) * 0.02;
+  const hazeGrd = ctx.createLinearGradient(0, H * 0.6, 0, H);
+  hazeGrd.addColorStop(0, 'rgba(0,0,0,0)');
+  hazeGrd.addColorStop(0.5, `rgba(120, 40, 10, ${hazeAlpha})`);
+  hazeGrd.addColorStop(1, `rgba(80, 20, 5, ${hazeAlpha * 1.5})`);
+  ctx.fillStyle = hazeGrd;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Atmospheric particles (dust, smoke, embers) ──
+  updateMenuParticles(1 / 60);
 }
 
 // ============================================================
@@ -8458,6 +8665,11 @@ function gameLoop(timestamp) {
   lastTime = timestamp;
 
   ctx.clearRect(0, 0, W, H);
+
+  // ── Continuous menu animation timer (persists across all menu screens) ──
+  if (gameState !== 'battle' && gameState !== 'opening' && gameState !== 'story') {
+    _menuAnimTime += dt;
+  }
 
   switch(gameState) {
     case 'opening':
