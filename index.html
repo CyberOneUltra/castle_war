@@ -1566,6 +1566,16 @@ function updateCombat(unit, b, dt) {
       unit.dir = unit.baseDir;
     }
 
+    // === 城堡已摧毁：掉头追击残余敌军（Boss等） ===
+    const enemyCastleDown = (unit.team === 'player' && b.aiCastle.wallHp <= 0) ||
+                            (unit.team === 'ai' && b.playerCastle.wallHp <= 0);
+    if (enemyCastleDown) {
+      const nearestEnemy = findNearestEnemy(unit, enemies);
+      if (nearestEnemy) {
+        unit.dir = nearestEnemy.x < unit.x ? -1 : 1;
+      }
+    }
+
     // Terrain effects
     if (b.terrain === 'river' && !unit.flying) {
       // River in middle
@@ -1600,8 +1610,8 @@ function updateCombat(unit, b, dt) {
     unit.y = Math.max(200, Math.min(600, unit.y));
   }
 
-  // Attack castle if reached
-  if (unit.team === 'player' && unit.x >= BATTLEFIELD.right - 20) {
+  // Attack castle if reached (skip if castle already destroyed — let findTarget pick boss/enemies)
+  if (unit.team === 'player' && unit.x >= BATTLEFIELD.right - 20 && b.aiCastle.wallHp > 0) {
     unit.state = 'attack';
     unit.attackCooldown -= dt;
     if (unit.attackCooldown <= 0) {
@@ -1613,7 +1623,7 @@ function updateCombat(unit, b, dt) {
       unit.attackCooldown = 1.0;
     }
   }
-  if (unit.team === 'ai' && unit.x <= BATTLEFIELD.left + 20) {
+  if (unit.team === 'ai' && unit.x <= BATTLEFIELD.left + 20 && b.playerCastle.wallHp > 0) {
     // Check if there's a living gargoyle (圣像守卫) to absorb castle damage
     const gargoyleGuard = b.playerUnits.find(u => u.isGargoyle && u.state !== 'die');
     if (gargoyleGuard) {
